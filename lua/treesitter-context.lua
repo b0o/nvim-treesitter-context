@@ -61,7 +61,7 @@ local INDENT_PATTERN = '^%s+'
 local didSetup = false
 local enabled = nil
 local winid = nil
-local bufnr = api.nvim_create_buf(false, true)
+local bufnr = nil
 local ns = api.nvim_create_namespace('nvim-treesitter-context')
 local context_nodes = {}
 local context_types = {}
@@ -512,6 +512,7 @@ function M.open()
 end
 
 function M.enable()
+  bufnr = api.nvim_create_buf(false, true)
   local throttle = config.throttle and 'throttled_' or ''
   nvim_augroup('treesitter_context_update', {
     {'WinScrolled', '*',                   'silent lua require("treesitter-context").' .. throttle .. 'update_context()'},
@@ -531,8 +532,9 @@ end
 
 function M.disable()
   nvim_augroup('treesitter_context_update', {})
-
   M.close()
+  api.nvim_buf_delete(bufnr, {})
+  bufnr = nil
   enabled = false
 end
 
